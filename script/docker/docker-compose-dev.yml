@@ -1,0 +1,48 @@
+version: '3'
+services:
+  # Nacos 注册/配置中心
+  nacos:
+    image: nacos/nacos-server:v3.1.0
+    hostname: "nacos-standalone"
+    environment:
+      - NACOS_AUTH_ENABLE=false
+      - NACOS_AUTH_TOKEN=OWFjZGIwNzEtNDg2Ny00MDg5LWFkZTgtNGRkNWU5YjJhMDMw
+      - NACOS_AUTH_IDENTITY_KEY=serverIdentity
+      - NACOS_AUTH_IDENTITY_VALUE=security
+      - MODE=standalone
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./nacos/standalone-logs/:/home/nacos/logs
+    ports:
+      - 8848:8848
+      - 9848:9848
+      - 9849:9849
+    networks:
+      - blade_net
+
+  # Sentinel 流量控制
+  sentinel:
+    image: bladex/sentinel-dashboard:1.8.0
+    hostname: "sentinel"
+    ports:
+      - 8858:8858
+    restart: on-failure
+    networks:
+      - blade_net
+
+  # Redis 缓存
+  blade-redis:
+    image: redis:7-alpine
+    hostname: "blade-redis"
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis/data:/data
+    command: "redis-server --appendonly yes"
+    restart: always
+    networks:
+      - blade_net
+
+networks:
+  blade_net:
+    driver: bridge
